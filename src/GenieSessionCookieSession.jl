@@ -22,7 +22,7 @@ end
 
 Persists the `Session` object to the cookie and returns it.
 """
-function write(params::Params) :: GenieSession.Session
+function GenieSession.write(params::Params) :: GenieSession.Session
   try
     write_session(params, params[:session])
 
@@ -68,33 +68,23 @@ function read(req) :: Union{Nothing,GenieSession.Session}
   try
     io = IOBuffer()
     iob64_decode = Base64DecodePipe(io)
-    Base.write(io, Genie.Cookies.get(req, cookie_key_name()))
+    content = Genie.Cookies.get(req, cookie_key_name())
+    content === nothing && return nothing
+
+    Base.write(io, content)
     seekstart(io)
     Serialization.deserialize(iob64_decode)
   catch ex
     @error "Can't read session"
     @error ex
+
+    nothing
   end
 end
 
 
 #===#
 # IMPLEMENTATION
-
-"""
-    persist(s::Session) :: Session
-
-Generic method for persisting session data - delegates to the underlying `SessionAdapter`.
-"""
-function GenieSession.persist(req::GenieSession.HTTP.Request, res::GenieSession.HTTP.Response, params::Params) :: Tuple{GenieSession.HTTP.Request,GenieSession.HTTP.Response,Params}
-  write(params)
-
-  req, res, params
-end
-function GenieSession.persist(params::Genie.Context.Params) :: Genie.Context.Params
-  write(params)
-  params
-end
 
 
 """
