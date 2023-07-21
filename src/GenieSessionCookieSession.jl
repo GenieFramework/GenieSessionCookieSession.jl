@@ -75,8 +75,8 @@ function read(req) :: Union{Nothing,GenieSession.Session}
     seekstart(io)
     Serialization.deserialize(iob64_decode)
   catch ex
-    @error "Can't read session"
-    @error ex
+    @debug "Can't read session"
+    @debug ex
 
     nothing
   end
